@@ -8,18 +8,15 @@ const ActivityGroup = db.define('activities',{
     email: DataTypes.STRING,
     created_at: {
         type: DataTypes.DATE,
-        defaultValue: Date.now(),
+        defaultValue: DataTypes.NOW,
     },
     updated_at: {
         type: DataTypes.DATE,
-        defaultValue: Date.now(),
-        onUpdate : Date.now(),
+        defaultValue: DataTypes.NOW,
     }
 },{
     freezeTableName:true
 })
-ActivityGroup.sync()
-
 const TodoItem = db.define('todos',{
     title: DataTypes.STRING,
     is_active: {
@@ -30,17 +27,17 @@ const TodoItem = db.define('todos',{
     activity_group_id: DataTypes.INTEGER,
     created_at: {
         type: DataTypes.DATE,
-        defaultValue: Date.now(),
+        defaultValue: DataTypes.NOW,
     },
     updated_at: {
         type: DataTypes.DATE,
-        defaultValue: Date.now(),
-        onUpdate : Date.now(),
+        defaultValue: DataTypes.NOW,
     },
 },{
     freezeTableName:true
 })
-TodoItem.sync()
+db.sync()
+
 ActivityGroup.hasMany(TodoItem,{
     foreignKey:"activity_group_id",
     as : 'todo_items',
