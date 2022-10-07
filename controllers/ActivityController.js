@@ -1,95 +1,74 @@
-import {PrismaClient} from "@prisma/client";
+const {ActivityGroup, TodoItem} = require('../models/Model.js')
 
-const prisma = new PrismaClient();
-
-export const getActivityGroups = async (req, res) =>{
-    try {
-        const email = req.query.email;
-        const data = await prisma.activityGroup.findMany({
-            where: { email },
-            select:{
-                id : true,
-                title : true,
-                created_at : true
-            }
-          })
-          const total = data.length
-        res.status(200).json({limit:1000,skip:0,total,data});
-    } catch (error) {
-        res.status(500).json({msg: error.message});
-    }
-}
-
-export const getActivityGroupById = async (req, res) =>{
-    try {
-        const data = await prisma.activityGroup.findUnique({
-            where:{
-                id: Number(req.params.id)
-            },
-            
-            select:{
-                id : true,
-                title : true,
-                created_at : true,
-                todo_items:{
-                    select:{
-                        title : true,
-                        activity_group_id : true,
-                        id : true,
-                        is_active : true,
-                        priority : true,
-                    }
+module.exports = {
+    getActivityGroups: async function(req, res){
+        try {
+            const email = req.query.email;
+            const data = await ActivityGroup.findAll({
+                where:{
+                    email : email,
+                },
+                attributes:['id','title','created_at']
+            })
+              const total = data.length
+            res.status(200).json({limit:1000,skip:0,total,data});
+        } catch (error) {
+            res.status(500).json({msg: error.message});
+        }
+    },
+    getActivityGroupById: async function(req, res){
+        try {
+            const data = await ActivityGroup.findOne({
+                where:{
+                    id: Number(req.params.id)
+                },
+                include: {
+                    model: TodoItem,
+                    as : 'todo_items',
+                    attributes : ['title','activity_group_id','id','is_active','priority']
+                  },
+                attributes :["id","title","created_at"],
+            });
+            res.status(200).json(data);
+        } catch (error) {
+            res.status(404).json({msg: error.message});
+        }
+    },
+    createActivityGroups: async function(req, res){
+        try {
+            const data = await ActivityGroup.create(req.body);
+            res.status(200).json(data);
+        } catch (error) {
+            res.status(400).json({msg: error.message});
+        }
+    },
+    updateActivityGroup: async function(req, res){
+        try {
+            await ActivityGroup.update(req.body,{
+                where:{
+                    id: Number(req.params.id)
                 }
-            },
-        });
-        res.status(200).json(data);
-    } catch (error) {
-        res.status(404).json({msg: error.message});
-    }
-}
-
-export const createActivityGroups = async (req, res) =>{
-    const {email, title} = req.body;
-    
-    try {
-        const data = await prisma.activityGroup.create({
-            data:{
-                email,
-                title
-            }
-        });
-        res.status(200).json(data);
-    } catch (error) {
-        res.status(400).json({msg: error.message});
-    }
-}
-
-export const updateActivityGroup = async (req, res) =>{
-    const {title} = req.body;
-    try {
-        const data = await prisma.activityGroup.update({
-            where:{
-                id: Number(req.params.id)
-            },
-            data:{
-                title
-            }
-        });
-        res.status(200).json(data);
-    } catch (error) {
-        res.status(400).json({msg: error.message});
-    }
-}
-
-export const deleteActivityGroup = async (req, res) =>{
-    try {
-        await prisma.activityGroup.delete({
-            where:{
-                id: Number(req.params.id)
-            }
-        });
-        res.status(200).json([{}]);
-    } catch (error) {
-        res.status(400).json({msg: error.message});
-    }
-}
+            });
+            const data = await ActivityGroup.findOne({
+                where:{
+                    id: Number(req.params.id)
+                },
+            })
+            res.status(200).json(data);
+        } catch (error) {
+            res.status(400).json({msg: error.message});
+        }
+    },
+    deleteActivityGroup: async function(req, res){
+        try {
+            await ActivityGroup.destroy({
+                where:{
+                    id: Number(req.params.id)
+                }
+            });
+            res.status(200).json([{}]);
+        } catch (error) {
+            res.status(400).json({msg: error.message});
+        }
+    },
+};
